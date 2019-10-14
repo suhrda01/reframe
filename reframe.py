@@ -97,15 +97,15 @@ class Relation(pd.DataFrame):
         >>> country = Relation('country.csv')
         >>> country.sort(['indepyear'], ascending=False).query('indepyear < 1200').project(['name','indepyear'])
                        name  indepyear
-        159        Portugal       1143
-        29   United Kingdom       1066
-        180      San Marino        885
-        164          France        843
-        170          Sweden        836
-        200         Denmark        800
-        81            Japan       -660
-        48         Ethiopia      -1000
-        93            China      -1523
+        159        Portugal     1143.0
+        29   United Kingdom     1066.0
+        180      San Marino      885.0
+        164          France      843.0
+        170          Sweden      836.0
+        200         Denmark      800.0
+        81            Japan     -660.0
+        48         Ethiopia    -1000.0
+        93            China    -1523.0
 
         """
 
@@ -319,6 +319,33 @@ class Relation(pd.DataFrame):
         return Relation(super().rename(columns={old:new}).drop_duplicates())
 
     def cartesian_product(self,other):
+        """ Take two relations and joins them together returning a relation consisting of all combinations of records 
+        from each input table, and its schema consists of the union of the fields in the input schemas
+
+        This operator is not very useful on its own, meaning is added if it is used with a select operator
+
+        :param other:
+        :return: Relation
+
+        :Example:
+
+        >>> from reframe import Relation
+        >>> data1 = {'student': ['Abby', 'Billy', 'Carson']}
+        >>> data2 = {'grade': ['B', 'A'], 'course': ['Math', 'Science']}
+        >>> df1 = pd.DataFrame(data=data1)
+        >>> df2 = pd.DataFrame(data=data2)
+        >>> r1 = Relation(df1)
+        >>> r2 = Relation(df2)
+        >>> r1.cartesian_product(r2).project(['student','grade','course'])
+          student grade   course
+        0    Abby     B     Math
+        1    Abby     A  Science
+        2   Billy     B     Math
+        3   Billy     A  Science
+        4  Carson     B     Math
+        5  Carson     A  Science
+        """
+
         self['__cartkey__'] = 1
         other['__cartkey__'] = 1
         res = pd.merge(self,other,on='__cartkey__')
@@ -329,6 +356,7 @@ class Relation(pd.DataFrame):
 
     def groupby(self,cols):
         """ Collapse a relation containing one row per unique value in the given group by attributes.
+        When grouping by multiple attributes, the result will be unique groups of those attributes.
 
         The groupby operator is always used in conjunction with an aggregate operator.
 
@@ -355,6 +383,7 @@ class Relation(pd.DataFrame):
         1     Antarctica           5
         2           Asia          51
         3         Europe          46
+        4  North America          37
         5        Oceania          28
         6  South America          14
 
@@ -377,15 +406,15 @@ class Relation(pd.DataFrame):
         >>> country.extend('gnpdiff',country.gnp - country.gnpold).project(['name','gnpdiff']).head(10)
                            name  gnpdiff
         0           Afghanistan      NaN
-        1           Netherlands    10884
+        1           Netherlands  10884.0
         2  Netherlands Antilles      NaN
-        3               Albania      705
-        4               Algeria     3016
+        3               Albania    705.0
+        4               Algeria   3016.0
         5        American Samoa      NaN
         6               Andorra      NaN
-        7                Angola    -1336
+        7                Angola  -1336.0
         8              Anguilla      NaN
-        9   Antigua and Barbuda       28
+        9   Antigua and Barbuda     28.0
         >>>
 
         """
@@ -428,6 +457,7 @@ class GroupWrap(pd.core.groupby.DataFrameGroupBy):
         1     Antarctica           5
         2           Asia          51
         3         Europe          46
+        4  North America          37
         5        Oceania          28
         6  South America          14
         >>>
@@ -503,14 +533,14 @@ class GroupWrap(pd.core.groupby.DataFrameGroupBy):
         >>> from reframe import Relation
         >>> country = Relation('country.csv')
         >>> country.groupby(['continent']).max('gnp')
-               continent  max_gnp
-        0         Africa   116729
-        1     Antarctica        0
-        2           Asia  3787042
-        3         Europe  2133367
-        4  North America  8510700
-        5        Oceania   351182
-        6  South America   776739
+               continent    max_gnp
+        0         Africa   116729.0
+        1     Antarctica        0.0
+        2           Asia  3787042.0
+        3         Europe  2133367.0
+        4  North America  8510700.0
+        5        Oceania   351182.0
+        6  South America   776739.0
         >>>
 
         """
